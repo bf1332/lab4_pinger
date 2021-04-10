@@ -132,7 +132,7 @@ def ping(host, timeout=1):
         #print(stddev)
     stddev = math.sqrt((stddev / len(lst)))
     # print(f'packet_min: {packet_min}, packet_max: {packet_max}, packet_avg: {packet_avg}, stddev: {stddev}') 
-    vars = [float(round(packet_min, 2)), float(round(packet_avg, 2)), float(round(packet_max, 2)),float(round(stddev, 2))]
+    vars = [str(round(packet_min, 2)), str(round(packet_avg, 2)), str(round(packet_max, 2)),str(round(stddev, 2))]
     #print(vars)
     return vars
 
