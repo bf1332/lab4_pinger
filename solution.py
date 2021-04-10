@@ -5,6 +5,7 @@ import struct
 import time
 import select
 import binascii
+import math
 # Should use stdev
 
 ICMP_ECHO_REQUEST = 8
@@ -48,13 +49,14 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         recPacket, addr = mySocket.recvfrom(1024)
 
         # Fill in start
-        icmpHeader = recPacket[20:28]
-        icmpType, code, myChecksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
+        header = recPacket[20:28]
+        type, code, checksum, packetID, sequence = struct.unpack("bbHHh", header)
 
-        if type != 8 and packetID == ID:
+        if type == 0 and packetID == ID:
             bytesInDouble = struct.calcsize("d")
             timeSent = struct.unpack("d", recPacket[28:28 + bytesInDouble])[0]
-            return timeReceived - timeSent
+            delay = timeReceived - timeSent
+            return delay
 
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
@@ -111,13 +113,26 @@ def ping(host, timeout=1):
     print("Pinging " + dest + " using Python:")
     print("")
     # Calculate vars values and return them
-    #  vars = [str(round(packet_min, 2)), str(round(packet_avg, 2)), str(round(packet_max, 2)),str(round(stdev(stdev_var), 2))]
+   
+    lst = []
     # Send ping requests to a server separated by approximately one second
     for i in range(0,4):
         delay = doOnePing(dest, timeout)
         print(delay)
+        lst.append(round(delay[0]*1000, 2))
         time.sleep(1)  # one second
-
+    
+    packet_min=min(lst)
+    packet_max=max(lst)
+    packet_avg=sum(lst)/len(lst)
+    stddev=0
+    for i in lst:
+        stddev += (i - packet_avg)**2
+        print(stddev)
+    stddev = math.sqrt((stddev / len(lst)))
+    # print(f'packet_min: {packet_min}, packet_max: {packet_max}, packet_avg: {packet_avg}, stddev: {stddev}') 
+    vars = [float(round(packet_min, 2)), float(round(packet_avg, 2)), float(round(packet_max, 2)),float(round(stddev, 2))]
+    print(vars)
     return vars
 
 if __name__ == '__main__':
